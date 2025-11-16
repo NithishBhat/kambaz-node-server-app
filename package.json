@@ -4,13 +4,14 @@
   "description": "Node.js http webserver for the kambaz application",
   "license": "ISC",
   "author": "",
-   "type": "module",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^5.1.0"
   }
 }
