@@ -12,7 +12,7 @@ export default function AssignmentRoutes(app) {
     res.sendStatus(200);
   });
 
-  // 3. Update an assignment
+
   app.put("/api/assignments/:aid", (req, res) => {
     const { aid } = req.params;
     const assignmentIndex = assignments.findIndex((a) => a._id === aid);
