@@ -1,31 +1,28 @@
+import model from "./model.js";
 import { v4 as uuidv4 } from "uuid";
-export default function UsersDao(db) {
-  let { users } = db;
+
+export default function UsersDao() {
   const createUser = (user) => {
     const newUser = { ...user, _id: uuidv4() };
-    users = [...users, newUser];
-    return newUser;
+    return model.create(newUser);
   };
-  const findAllUsers = () => users;
-  const findUserById = (userId) => users.find((user) => user._id === userId);
-  const findUserByUsername = (username) =>
-    users.find((user) => user.username === username);
-  const findUserByCredentials = (username, password) =>
-    users.find((user) => user.username === username && user.password === password);
   
-  // Corrected: Merges updates instead of replacing
-  const updateUser = (userId, userUpdates) => {
-    users = users.map((u) =>
-      u._id === userId ? { ...u, ...userUpdates } : u
-    );
-    return users.find((user) => user._id === userId); // Return updated user
+  const findAllUsers = () => model.find();
+  const findUserById = (userId) => model.findById(userId);
+  const findUserByUsername = (username) => model.findOne({ username: username });
+  const findUserByCredentials = (username, password) => model.findOne({ username, password });
+  const updateUser = (userId, user) => model.updateOne({ _id: userId }, { $set: user });
+  const deleteUser = (userId) => model.deleteOne({ _id: userId });
+
+  // New functions for search/filter features (Pages 218-220)
+  const findUsersByRole = (role) => model.find({ role: role });
+  const findUsersByPartialName = (partialName) => {
+    const regex = new RegExp(partialName, "i"); // 'i' makes it case-insensitive
+    return model.find({
+      $or: [{ firstName: { $regex: regex } }, { lastName: { $regex: regex } }],
+    });
   };
 
-  const deleteUser = (userId) => {
-    users = users.filter((u) => u._id !== userId);
-    return users;
-  };
-  
   return {
     createUser,
     findAllUsers,
@@ -34,6 +31,7 @@ export default function UsersDao(db) {
     findUserByCredentials,
     updateUser,
     deleteUser,
+    findUsersByRole,
+    findUsersByPartialName,
   };
 }
-// Removed the extra code that was outside the function and causing errors

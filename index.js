@@ -1,21 +1,56 @@
-import Hello from "./Hello.js";
+import "dotenv/config"; // READS .env variables
 import express from 'express';
-import Lab5 from "./Lab5/index.js";
+import mongoose from "mongoose";
 import cors from "cors";
-import * as db from "./Kambaz/Database/index.js";
+import session from "express-session";
 
-import UserRoutes from "./Kambaz/Users/router.js";
-import AssignmentRoutes from "./Kambaz/Assignments/router.js";
-import EnrollmentRoutes from "./Kambaz/Enrollments/router.js"; // 1. Import new router
+import Hello from "./Hello.js";
+import Lab5 from "./Lab5/index.js";
+
+// Routes
+import UserRoutes from "./Kambaz/Users/routes.js";
+import CourseRoutes from "./Kambaz/Courses/routes.js";
+import ModuleRoutes from "./Kambaz/Modules/routes.js";
+import AssignmentRoutes from "./Kambaz/Assignments/routes.js";
+import EnrollmentRoutes from "./Kambaz/Enrollments/routes.js";
+
+const CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING || "mongodb://127.0.0.1:27017/Kambaz";
+mongoose.connect(CONNECTION_STRING);
 
 const app = express();
 
-app.use(cors());
+// 1. Configure CORS with Credentials (REQUIRED for Session)
+app.use(
+  cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+  })
+);
+
+// 2. Configure Session (REQUIRED for Login)
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET || "kanbas",
+  resave: false,
+  saveUninitialized: false,
+};
+if (process.env.NODE_ENV !== "development") {
+  sessionOptions.proxy = true;
+  sessionOptions.cookie = {
+    sameSite: "none",
+    secure: true,
+    domain: process.env.HTTP_SERVER_DOMAIN,
+  };
+}
+app.use(session(sessionOptions));
+
 app.use(express.json());
 
-UserRoutes(app, db);
+// 3. Register Routes
+UserRoutes(app);
+CourseRoutes(app);
+ModuleRoutes(app);
 AssignmentRoutes(app);
-EnrollmentRoutes(app); // 2. Register the new routes
+EnrollmentRoutes(app);
 
 Lab5(app);
 Hello(app);
