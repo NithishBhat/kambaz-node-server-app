@@ -1,4 +1,4 @@
-import "dotenv/config"; // READS .env variables
+import "dotenv/config";
 import express from 'express';
 import mongoose from "mongoose";
 import cors from "cors";
@@ -19,7 +19,7 @@ mongoose.connect(CONNECTION_STRING);
 
 const app = express();
 
-// 1. Configure CORS with Credentials (REQUIRED for Session)
+// 1. Configure CORS with Credentials
 app.use(
   cors({
     credentials: true,
@@ -27,18 +27,18 @@ app.use(
   })
 );
 
-// 2. Configure Session (REQUIRED for Login)
+// 2. Configure Session
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kanbas",
   resave: false,
   saveUninitialized: false,
 };
-if (process.env.NODE_ENV !== "development") {
+if (process.env.SERVER_ENV === "production") {
   sessionOptions.proxy = true;
   sessionOptions.cookie = {
     sameSite: "none",
     secure: true,
-    domain: process.env.HTTP_SERVER_DOMAIN,
+    domain: process.env.SERVER_URL,
   };
 }
 app.use(session(sessionOptions));
