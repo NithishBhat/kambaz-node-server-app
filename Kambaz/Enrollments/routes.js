@@ -15,10 +15,11 @@ app.get("/api/users/:uid/enrollments", async (req, res) => {
     res.json(newEnrollment);
   });
 
-  // 3. Unenroll a user from a course
-  app.delete("/api/enrollments", async (req, res) => {
-    const { user, course } = req.body;
-    await dao.unenrollUserFromCourse(user, course);
+// 3. Unenroll a user from a course (UPDATED)
+  app.delete("/api/enrollments/:userId/:courseId", async (req, res) => {
+    const { userId, courseId } = req.params;
+    const { unenrollUserFromCourse } = dao; // Destructure the function from dao
+    await unenrollUserFromCourse(userId, courseId);
     res.sendStatus(200);
   });
 }
