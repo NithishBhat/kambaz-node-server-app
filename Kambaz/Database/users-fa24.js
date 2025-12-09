@@ -1,8 +1,8 @@
 export default[
   {
     "_id": "123",
-    "username": "1",
-    "password": "1",
+    "username": "iron_man",
+    "password": "stark123",
     "firstName": "Tony",
     "lastName": "Stark",
     "email": "tony@stark.com",

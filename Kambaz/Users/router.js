@@ -1,28 +1,19 @@
 import UsersDao from "./dao.js";
-import { enrollments } from "../Database/index.js"; // Import enrollments
-
-let currentUser = null; // Session management (as in your original)
+import { enrollments } from "../Database/index.js";
 
 export default function UserRoutes(app, db) {
   const dao = UsersDao(db);
 
-  // --- New Route: Get Users for a Course ---
+  // --- Get Users for a Course ---
   app.get("/api/courses/:cid/users", (req, res) => {
     const { cid } = req.params;
-    
-    // 1. Get all user IDs enrolled in this course
     const enrolledUserIds = enrollments
       .filter((e) => e.course === cid)
       .map((e) => e.user);
-    
-    // 2. Get all users
     const allUsers = dao.findAllUsers();
-
-    // 3. Filter all users to find the ones who are enrolled
-    const courseUsers = allUsers.filter((user) => 
+    const courseUsers = allUsers.filter((user) =>
       enrolledUserIds.includes(user._id)
     );
-    
     res.json(courseUsers);
   });
 
@@ -31,55 +22,63 @@ export default function UserRoutes(app, db) {
     const user = dao.createUser(req.body);
     res.json(user);
   };
-  
+
   const deleteUser = (req, res) => {
     dao.deleteUser(req.params.userId);
     res.sendStatus(200);
   };
-  
+
   const findAllUsers = (req, res) => {
     res.json(dao.findAllUsers());
   };
-  
+
   const findUserById = (req, res) => {
     const user = dao.findUserById(req.params.userId);
     res.json(user);
   };
-  
+
   const updateUser = (req, res) => {
     const { userId } = req.params;
     const updatedUser = dao.updateUser(userId, req.body);
-    if (currentUser?._id === userId) {
-      currentUser = updatedUser; // Update session if it's the current user
+    // Update session if it's the current user
+    if (req.session["currentUser"]?._id === userId) {
+      req.session["currentUser"] = updatedUser;
     }
     res.json(updatedUser);
   };
 
-  // --- Session Routes (from your original) ---
+  // --- Session Routes ---
   const signup = (req, res) => {
     const user = dao.findUserByUsername(req.body.username);
     if (user) {
       res.status(400).json({ message: "Username already in use" });
       return;
     }
-    currentUser = dao.createUser(req.body);
-    res.json(currentUser);
+    const newUser = dao.createUser(req.body);
+    req.session["currentUser"] = newUser;
+    res.json(newUser);
   };
 
   const signin = (req, res) => {
     const { username, password } = req.body;
-    currentUser = dao.findUserByCredentials(username, password);
-    res.json(currentUser);
+    const user = dao.findUserByCredentials(username, password);
+    if (user) {
+      req.session["currentUser"] = user;
+      res.json(user);
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
   };
 
   const signout = (req, res) => {
-    currentUser = null;
+    req.session.destroy();
     res.sendStatus(200);
   };
 
   const profile = (req, res) => {
+    const currentUser = req.session["currentUser"];
     if (!currentUser) {
-      res.sendStatus(401); // Not authorized
+      res.sendStatus(401);
       return;
     }
     res.json(currentUser);
@@ -94,5 +93,5 @@ export default function UserRoutes(app, db) {
   app.post("/api/users/signup", signup);
   app.post("/api/users/signin", signin);
   app.post("/api/users/signout", signout);
-  app.post("/api/users/profile", profile); // Using POST for profile is common
+  app.post("/api/users/profile", profile);
 }
