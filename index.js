@@ -45,7 +45,7 @@ app.use(session(sessionOptions));
 
 app.use(express.json());
 
-// 3. Register Routes
+// 3. Register Routes (no db parameter needed - using Mongoose models)
 UserRoutes(app);
 CourseRoutes(app);
 ModuleRoutes(app);

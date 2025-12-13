@@ -5,14 +5,18 @@ export default function EnrollmentsDao() {
 
   const findEnrollmentsForUser = (userId) => model.find({ user: userId });
 
+  // Find courses for a user (Page 243)
+  const findCoursesForUser = async (userId) => {
+    const enrollments = await model.find({ user: userId }).populate("course");
+    return enrollments.map((enrollment) => enrollment.course);
+  };
+
   const findUsersForCourse = async (courseId) => {
     const enrollments = await model.find({ course: courseId }).populate("user");
     return enrollments.map((enrollment) => enrollment.user);
   };
 
   const enrollUserInCourse = (userId, courseId) =>
-    // FIX: Ensure the ID is a simple string combining user and course
-    // This matches the format used in your enrollments.json ("userId-courseId")
     model.create({ _id: `${userId}-${courseId}`, user: userId, course: courseId });
 
   const unenrollUserFromCourse = (userId, courseId) =>
@@ -24,6 +28,7 @@ export default function EnrollmentsDao() {
   return {
     findAllEnrollments,
     findEnrollmentsForUser,
+    findCoursesForUser,
     findUsersForCourse,
     enrollUserInCourse,
     unenrollUserFromCourse,
