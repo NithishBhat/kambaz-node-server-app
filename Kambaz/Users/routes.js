@@ -1,14 +1,12 @@
 import UsersDao from "./dao.js";
-import EnrollmentsDao from "../Enrollments/dao.js"; // 1. Import the DB DAO
+import EnrollmentsDao from "../Enrollments/dao.js";
 
 export default function UserRoutes(app) {
   const dao = UsersDao();
   const enrollmentsDao = EnrollmentsDao();
 
-  // 2. Use MongoDB to find users for a course
   app.get("/api/courses/:cid/users", async (req, res) => {
     const { cid } = req.params;
-    // This calls the DAO which uses .populate() to link Enrollments -> Users
     const users = await enrollmentsDao.findUsersForCourse(cid);
     res.json(users);
   });
@@ -94,11 +92,15 @@ export default function UserRoutes(app) {
 
   app.post("/api/users", createUser);
   app.get("/api/users", findAllUsers);
-  app.get("/api/users/:userId", findUserById);
-  app.put("/api/users/:userId", updateUser);
-  app.delete("/api/users/:userId", deleteUser);
+  
+  // These specific routes MUST come before /:userId
   app.post("/api/users/signup", signup);
   app.post("/api/users/signin", signin);
   app.post("/api/users/signout", signout);
-  app.post("/api/users/profile", profile);
+  app.get("/api/users/profile", profile);
+  
+  // Dynamic :userId routes come last
+  app.get("/api/users/:userId", findUserById);
+  app.put("/api/users/:userId", updateUser);
+  app.delete("/api/users/:userId", deleteUser);
 }
